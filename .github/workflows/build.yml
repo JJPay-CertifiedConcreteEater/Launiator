@@ -1,14 +1,27 @@
-name: Build Windows EXE
+name: Create Multi-Platform Release
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    tags:
+      - 'v*'
 
 jobs:
   build:
-    runs-on: windows-latest
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        include:
+          - os: windows-latest
+            artifact_name: launiator.exe
+            asset_name: launiator-windows.exe
+          - os: ubuntu-latest
+            artifact_name: launiator
+            asset_name: launiator-linux
+          - os: macos-latest
+            artifact_name: launiator
+            asset_name: launiator-macos
 
     steps:
     - name: Checkout code
@@ -25,12 +38,18 @@ jobs:
         pip install -r requirements.txt
         pip install pyinstaller
 
-    - name: Build EXE with PyInstaller
+    - name: Build with PyInstaller
       run: |
-        pyinstaller --onefile --noconsole --add-data "theme.wav;." launiator.py
+        pyinstaller --onefile --noconsole --add-data "theme.wav${{ matrix.os == 'windows-latest' && ';' || ':' }}." launiator.py
 
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+    - name: Rename Artifact
+      shell: bash
+      run: |
+        mv dist/${{ matrix.artifact_name }} dist/${{ matrix.asset_name }}
+
+    - name: Release
+      uses: softprops/action-gh-release@v2
       with:
-        name: Launiator-EXE
-        path: dist/launiator.exe
+        files: dist/${{ matrix.asset_name }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
