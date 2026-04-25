@@ -24,7 +24,15 @@ class LauniatorApp:
 
     def play_theme(self):
         def run_audio():
-            sound_file = "theme.wav"
+            import sys
+            
+            if getattr(sys, 'frozen', False):
+                base_path = sys._MEIPASS
+            else:
+                base_path = os.path.abspath(".")
+
+            sound_file = os.path.join(base_path, "theme.wav")
+            
             if not os.path.exists(sound_file):
                 return
 
@@ -35,7 +43,6 @@ class LauniatorApp:
                 print(f"Audio Error: {e}")
         
         threading.Thread(target=run_audio, daemon=True).start()
-
     def start_splash_screen(self):
         self.clear_screen()
         self.splash_label = tk.Label(self.main_container, text="LAUNIATOR", font=("Helvetica", 42, "bold"), bg="#000000", fg="#000000")
