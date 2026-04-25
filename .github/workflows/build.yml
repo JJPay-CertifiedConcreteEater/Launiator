@@ -43,8 +43,15 @@ jobs:
         pip install pyinstaller
 
     - name: Build with PyInstaller
+      shell: bash
       run: |
-        pyinstaller --onefile --noconsole --add-data "theme.wav${{ matrix.os == 'windows-latest' && ';' || ':' }}." launiator.py
+        if [ "${{ matrix.os }}" == "windows-latest" ]; then
+          pyinstaller --onefile --noconsole --add-data "theme.wav;." --hidden-import PIL._tkinter_finder --name launiator-windows launiator.py
+        elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+          pyinstaller --onefile --noconsole --add-data "theme.wav:." --hidden-import PIL._tkinter_finder --name launiator-macos launiator.py
+        else
+          pyinstaller --onefile --noconsole --add-data "theme.wav:." --hidden-import PIL._tkinter_finder --name launiator-linux launiator.py
+        fi
 
     - name: Rename Artifact
       shell: bash
