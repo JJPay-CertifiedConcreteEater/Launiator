@@ -69,7 +69,6 @@ class LauniatorApp:
         self.root.configure(bg="#ffffff")
         self.main_container.configure(bg="#ffffff")
         self.clear_screen()
-        self.loading_active = False
 
         home_frame = tk.Frame(self.main_container, bg="#ffffff")
         home_frame.place(relx=0.5, rely=0.4, anchor="center")
@@ -108,10 +107,14 @@ class LauniatorApp:
         right_side = tk.Frame(content_area, bg="#ffffff", width=400)
         right_side.pack(side="right", fill="both", padx=(20, 0))
 
+        # --- IMAGE HANDLING ---
         img_preview = original_img.copy()
         img_preview.thumbnail((380, 380))
         self.tk_preview = ImageTk.PhotoImage(img_preview)
-        tk.Label(right_side, image=self.tk_preview, bg="#ffffff").pack(pady=10)
+        
+        preview_label = tk.Label(right_side, image=self.tk_preview, bg="#ffffff")
+        preview_label.image = self.tk_preview
+        preview_label.pack(pady=10)
 
         tk.Button(right_side, text="EXPORT TO .TXT", command=self.export_to_txt, bg="#34a853", fg="white", font=("Arial", 12, "bold"), padx=30, pady=12, relief="flat").pack(pady=20)
 
@@ -136,7 +139,8 @@ class LauniatorApp:
             messagebox.showinfo("Success", "Color data exported!")
 
     def get_color_name(self, rgb):
-        try: return webcolors.rgb_to_name(rgb)
+        try: 
+            return webcolors.rgb_to_name(rgb)
         except:
             min_colours = {}
             for name in webcolors.names("css3"):
@@ -148,8 +152,8 @@ class LauniatorApp:
     def process_upload(self):
         file_path = filedialog.askopenfilename()
         if file_path:
-            self.status_label.pack(); self.progress.pack(pady=10)
-            self.loading_active = True
+            self.status_label.pack()
+            self.progress.pack(pady=10)
             img = Image.open(file_path).convert('RGB')
             processed = img.quantize(colors=100).convert('RGB')
             colors = sorted(processed.getcolors(maxcolors=100), key=lambda x: x[0], reverse=True)
